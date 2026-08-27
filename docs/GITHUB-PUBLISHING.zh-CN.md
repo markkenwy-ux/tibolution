@@ -120,7 +120,7 @@ git diff --cached --name-only
 再次确认列表中没有 `dist/`、`node_modules/` 或任何 `*.asar*`，然后提交：
 
 ```bash
-git commit -m "Release Tibolution 2.1.0"
+git commit -m "Release Tibolution 2.1.1"
 ```
 
 确认提交：
@@ -191,7 +191,7 @@ git remote set-url origin https://github.com/YOUR_GITHUB_NAME/tibolution.git
 绿色勾表示 CI 测试通过，但不能把 CI 模拟写成 Windows/macOS 真实客户端验证。
 如果第一次出现启用 Actions 的提示，确认启用仓库自带工作流即可。
 
-## 7. 创建 v2.1.0 标签和 GitHub Release
+## 7. 创建 v2.1.1 标签和 GitHub Release
 
 先确保 Actions 通过且本地没有未提交文件：
 
@@ -202,16 +202,25 @@ git status --short
 创建带说明的标签并推送：
 
 ```bash
-git tag -a v2.1.0 -m "Tibolution 2.1.0"
-git push origin v2.1.0
+git tag -a v2.1.1 -m "Tibolution 2.1.1"
+git push origin v2.1.1
 ```
+
+标签推送会再次触发 Actions。此时不要立即创建 Release；先打开 Actions 页面，
+确认 `v2.1.1` 的 Ubuntu、macOS、Windows 任务全部通过。也可以先检查：
+
+```bash
+gh run list --workflow test.yml --branch v2.1.1 --limit 1
+```
+
+只有标签工作流显示 `completed success` 后，才创建 Release。
 
 使用仓库已经准备好的 Release 文案：
 
 ```bash
-gh release create v2.1.0 \
-  --title "Tibolution 2.1.0" \
-  --notes-file docs/releases/v2.1.0.md
+gh release create v2.1.1 \
+  --title "Tibolution 2.1.1" \
+  --notes-file docs/releases/v2.1.1.md
 ```
 
 GitHub 会自动生成 `Source code (zip)` 和 `Source code (tar.gz)`，一般不需要上传本机
@@ -220,7 +229,7 @@ GitHub 会自动生成 `Source code (zip)` 和 `Source code (tar.gz)`，一般�
 打开 Release 页面检查：
 
 ```bash
-gh release view v2.1.0 --web
+gh release view v2.1.1 --web
 ```
 
 ## 8. 设置仓库首页信息

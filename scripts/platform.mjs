@@ -16,8 +16,8 @@ export function candidateAsarPaths(platform = process.platform, environment = pr
     return [
       "/Applications/Codex.app/Contents/Resources/app.asar",
       "/Applications/ChatGPT.app/Contents/Resources/app.asar",
-      path.join(home, "Applications", "Codex.app", "Contents", "Resources", "app.asar"),
-      path.join(home, "Applications", "ChatGPT.app", "Contents", "Resources", "app.asar"),
+      path.posix.join(home, "Applications", "Codex.app", "Contents", "Resources", "app.asar"),
+      path.posix.join(home, "Applications", "ChatGPT.app", "Contents", "Resources", "app.asar"),
     ];
   }
   if (platform === "win32") {

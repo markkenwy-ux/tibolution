@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.1.1
+
+- Scoped the Linux launcher suite to Linux runners and supplied a local
+  test-only `pkexec` fixture so CI does not depend on host Polkit packages.
+- Fixed Windows atomic replacement by giving `File.Replace` a real sibling
+  backup path and retaining that backup if replacement fails.
+- Made simulated macOS discovery use POSIX path semantics on every host.
+- Required both branch and tag CI to pass before publishing a GitHub Release.
+
 ## 2.1.0
 
 - Added an optional Linux application-menu launcher that checks the active

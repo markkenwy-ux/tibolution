@@ -18,6 +18,10 @@ const launcher = path.join(project, "scripts", "launch-linux.sh");
 const installer = path.join(project, "scripts", "install-linux-launcher.sh");
 const uninstaller = path.join(project, "scripts", "uninstall-linux-launcher.sh");
 
+function linuxTest(name, fn) {
+  return test(name, { skip: process.platform !== "linux" }, fn);
+}
+
 function shellQuote(value) {
   return `'${value.replaceAll("'", `'\\''`)}'`;
 }
@@ -108,7 +112,7 @@ async function callLog(file) {
   return readFile(file, "utf8").catch(() => "");
 }
 
-test("Linux launcher starts immediately when Tibolution is still installed", async (t) => {
+linuxTest("Linux launcher starts immediately when Tibolution is still installed", async (t) => {
   const fixture = await launcherFixture(t, { installed: true });
   const result = runLauncher(fixture, ["codex://example", "argument with spaces"]);
   assert.equal(result.status, 0, result.stderr);
@@ -118,7 +122,7 @@ test("Linux launcher starts immediately when Tibolution is still installed", asy
   assert.doesNotMatch(log, /prepare-install|pkexec|notify/u);
 });
 
-test("Linux launcher rebuilds and requests Polkit only after a clean patch loss", async (t) => {
+linuxTest("Linux launcher rebuilds and requests Polkit only after a clean patch loss", async (t) => {
   const fixture = await launcherFixture(t);
   const before = await readFile(fixture.target, "utf8");
   const result = runLauncher(fixture);
@@ -128,7 +132,7 @@ test("Linux launcher rebuilds and requests Polkit only after a clean patch loss"
   assert.equal(await readFile(fixture.target, "utf8"), before);
 });
 
-test("Linux launcher skips repair while Desktop is already running", async (t) => {
+linuxTest("Linux launcher skips repair while Desktop is already running", async (t) => {
   const fixture = await launcherFixture(t, { runningStatus: 10 });
   const result = runLauncher(fixture);
   assert.equal(result.status, 0, result.stderr);
@@ -136,7 +140,7 @@ test("Linux launcher skips repair while Desktop is already running", async (t) =
   assert.equal(log, "node:platform.mjs\nchat\n");
 });
 
-test("build failure never calls pkexec and still starts the official client", async (t) => {
+linuxTest("build failure never calls pkexec and still starts the official client", async (t) => {
   const fixture = await launcherFixture(t, { prepareStatus: 1 });
   const before = await readFile(fixture.target, "utf8");
   const result = runLauncher(fixture);
@@ -147,7 +151,7 @@ test("build failure never calls pkexec and still starts the official client", as
   assert.equal(await readFile(fixture.target, "utf8"), before);
 });
 
-test("cancelled Polkit authorization leaves the target unchanged and starts Codex", async (t) => {
+linuxTest("cancelled Polkit authorization leaves the target unchanged and starts Codex", async (t) => {
   const fixture = await launcherFixture(t, { pkexecStatus: 126 });
   const before = await readFile(fixture.target, "utf8");
   const result = runLauncher(fixture);
@@ -157,7 +161,7 @@ test("cancelled Polkit authorization leaves the target unchanged and starts Code
   assert.equal(await readFile(fixture.target, "utf8"), before);
 });
 
-test("inconsistent patch state never builds or escalates", async (t) => {
+linuxTest("inconsistent patch state never builds or escalates", async (t) => {
   const fixture = await launcherFixture(t, { checkStatus: 1 });
   const result = runLauncher(fixture);
   assert.equal(result.status, 0, result.stderr);
@@ -166,7 +170,7 @@ test("inconsistent patch state never builds or escalates", async (t) => {
   assert.doesNotMatch(log, /prepare-install|pkexec/u);
 });
 
-test("concurrent launches allow only the lock owner to repair and start Desktop", async (t) => {
+linuxTest("concurrent launches allow only the lock owner to repair and start Desktop", async (t) => {
   const fixture = await launcherFixture(t, { prepareDelay: 0.35 });
   const start = () => new Promise((resolve) => {
     const child = spawn("bash", [launcher], { cwd: project, env: fixture.env, stdio: "ignore" });
@@ -181,24 +185,29 @@ test("concurrent launches allow only the lock owner to repair and start Desktop"
   assert.equal((log.match(/^chat$/gmu) ?? []).length, 1);
 });
 
-test("launcher installer and uninstaller restore an existing desktop entry byte-for-byte", async (t) => {
+linuxTest("launcher installer and uninstaller restore an existing desktop entry byte-for-byte", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "tibolution-launcher-install-test-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const dataHome = path.join(root, "data");
   const applications = path.join(dataHome, "applications");
+  const tools = path.join(root, "bin");
   const fakeBin = path.join(root, "ChatGPT");
+  const fakePkexec = path.join(tools, "pkexec");
   const target = path.join(root, "app.asar");
   const systemDesktop = path.join(root, "system-chatgpt.desktop");
   const userDesktop = path.join(applications, "chatgpt.desktop");
   const original = "[Desktop Entry]\nName=Personal ChatGPT\nExec=/custom/chatgpt %U\nType=Application\n";
   await mkdir(applications, { recursive: true });
+  await mkdir(tools);
   await executable(fakeBin, "#!/usr/bin/env bash\nexit 0\n");
+  await executable(fakePkexec, "#!/usr/bin/env bash\nexit 0\n");
   await writeFile(target, "fixture archive\n");
   await writeFile(systemDesktop, "[Desktop Entry]\nName=ChatGPT\nExec=chatgpt %U\nIcon=chatgpt\nType=Application\n");
   await writeFile(userDesktop, original);
   const env = {
     ...process.env,
     HOME: root,
+    PATH: `${tools}${path.delimiter}${process.env.PATH ?? ""}`,
     XDG_DATA_HOME: dataHome,
     TIBO_LAUNCHER_NODE_BIN: process.execPath,
     TIBO_LAUNCHER_CHATGPT_BIN: fakeBin,
@@ -215,22 +224,27 @@ test("launcher installer and uninstaller restore an existing desktop entry byte-
   assert.equal(await readFile(userDesktop, "utf8"), original);
 });
 
-test("launcher uninstaller refuses to overwrite a user-edited desktop entry", async (t) => {
+linuxTest("launcher uninstaller refuses to overwrite a user-edited desktop entry", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "tibolution-launcher-edit-test-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const dataHome = path.join(root, "data");
   const applications = path.join(dataHome, "applications");
+  const tools = path.join(root, "bin");
   const fakeBin = path.join(root, "ChatGPT");
+  const fakePkexec = path.join(tools, "pkexec");
   const target = path.join(root, "app.asar");
   const systemDesktop = path.join(root, "system-chatgpt.desktop");
   const userDesktop = path.join(applications, "chatgpt.desktop");
   await mkdir(applications, { recursive: true });
+  await mkdir(tools);
   await executable(fakeBin, "#!/usr/bin/env bash\nexit 0\n");
+  await executable(fakePkexec, "#!/usr/bin/env bash\nexit 0\n");
   await writeFile(target, "fixture archive\n");
   await writeFile(systemDesktop, "[Desktop Entry]\nName=ChatGPT\nExec=chatgpt %U\nType=Application\n");
   const env = {
     ...process.env,
     HOME: root,
+    PATH: `${tools}${path.delimiter}${process.env.PATH ?? ""}`,
     XDG_DATA_HOME: dataHome,
     TIBO_LAUNCHER_NODE_BIN: process.execPath,
     TIBO_LAUNCHER_CHATGPT_BIN: fakeBin,

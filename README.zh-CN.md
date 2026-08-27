@@ -4,13 +4,13 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub 发布教程](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.0 发布说明](docs/releases/v2.1.0.md)
+[v2.1.1 发布说明](docs/releases/v2.1.1.md)
 
 Tibolution 是一个非官方、与模型无关的 Codex Desktop 背景补丁。它读取 Codex
 最终选中的原生 reasoning effort，在六张本地图片之间交叉淡入，不修改官方压缩
 React bundle，不添加任何档位、控件、标题或说明文字。
 
-当前版本：**2.1.0**。Linux 已在真实客户端上完成构建、安装、还原、交互和启动
+当前版本：**2.1.1**。Linux 已在真实客户端上完成构建、安装、还原、交互和启动
 自检验证；Windows 与 macOS 的支持范围必须以本文的平台表格为准。
 
 ## 它做什么

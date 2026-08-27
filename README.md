@@ -4,9 +4,9 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub publishing guide (中文)](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.0 release notes](docs/releases/v2.1.0.md)
+[v2.1.1 release notes](docs/releases/v2.1.1.md)
 
-Current release: **2.1.0**. Linux has real-client verification. Windows and
+Current release: **2.1.1**. Linux has real-client verification. Windows and
 macOS support is deliberately qualified in the platform table below.
 
 **Tibolution** is an unofficial, model-agnostic background patch for Codex
