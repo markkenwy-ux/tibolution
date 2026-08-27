@@ -1,0 +1,71 @@
+name: Bug report
+description: Report a reproducible Tibolution compatibility, build, install, or runtime problem.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach app.asar, dist/, extracted official frontend files, tokens, conversations, account data, or private logs.
+  - type: input
+    id: version
+    attributes:
+      label: Tibolution version or commit
+      placeholder: 2.1.0 or a commit SHA
+    validations:
+      required: true
+  - type: input
+    id: codex_version
+    attributes:
+      label: Codex Desktop version
+      placeholder: 26.810.41047
+    validations:
+      required: true
+  - type: dropdown
+    id: operating_system
+    attributes:
+      label: Operating system
+      options:
+        - Linux
+        - Windows
+        - macOS
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Installation channel and package type
+      description: Examples include Debian package, unpackaged Electron installer, MSIX, signed macOS app, or unsigned bundle.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Include the exact safe command and whether Desktop was fully closed. Redact usernames and private paths when they are not relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and exact non-sensitive error
+      description: Paste only the smallest relevant output. Remove tokens, account identifiers, conversations, and unrelated private data.
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I did not attach an official, patched, backup, or extracted app archive.
+          required: true
+        - label: I removed credentials, account data, conversations, and private logs.
+          required: true
+        - label: I did not bypass a WindowsApps/MSIX or valid macOS signature refusal.
+          required: true

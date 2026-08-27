@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a scoped improvement to Tibolution.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tibolution does not unlock unsupported effort levels, maintain model allowlists, bypass package signatures, or redistribute official app files.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user-visible or maintenance problem should be solved?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the smallest useful behavior change and affected platforms.
+    validations:
+      required: true
+  - type: textarea
+    id: safety
+    attributes:
+      label: Compatibility and rollback considerations
+      description: Explain how native effort capabilities, signatures, exact backups, and failure fallback would remain intact.
+    validations:
+      required: true

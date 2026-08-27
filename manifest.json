@@ -1,0 +1,19 @@
+{
+  "name": "tibolution",
+  "version": "2.1.0",
+  "displayName": "Tibolution",
+  "tagline": "Turn up the reasoning. Evolve the Tibo.",
+  "compatibility": "runtime-detected",
+  "platforms": ["linux", "windows", "macos"],
+  "modelPolicy": "model-agnostic",
+  "mapping": {
+    "low": "assets/low.png",
+    "medium": "assets/medium.png",
+    "high": "assets/high.png",
+    "xhigh": "assets/xhigh.png",
+    "max": "assets/max.png",
+    "ultra": "assets/ultra.png"
+  },
+  "stateSource": "[data-codex-intelligence-trigger][data-selected-reasoning-effort]",
+  "distributesOfficialAppArchive": false
+}
