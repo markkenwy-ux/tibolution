@@ -71,7 +71,7 @@ export function protectedPlatformReason(target, platform = process.platform, opt
     const result = options.codesignResult ?? spawnSync(
       "codesign",
       ["--verify", "--deep", "--strict", bundle],
-      { encoding: "utf8" },
+      { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } },
     );
     if (result.status === 0) {
       return "The macOS app bundle has a valid code signature. Replacing app.asar would invalidate it, so Tibolution refused to modify the app.";
@@ -79,6 +79,17 @@ export function protectedPlatformReason(target, platform = process.platform, opt
     if (result.error?.code === "ENOENT") {
       return "The macOS app signature could not be checked because codesign is unavailable; Tibolution refused to modify the app.";
     }
+    // Verification failure alone is not evidence that the bundle is unsigned.
+    const display = options.codesignDisplayResult ?? spawnSync(
+      "codesign", ["--display", "--verbose=4", bundle],
+      { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } },
+    );
+    if (!result.error && result.status === 1 && !display.error && display.status === 1
+      && /: code object is not signed at all\s*$/u.test(String(display.stderr ?? "").trim())
+      && /: code object is not signed at all\s*$/u.test(String(result.stderr ?? "").trim())) {
+      return null;
+    }
+    return "The macOS bundle is signed (including ad-hoc), damaged, or its signature state is unknown; Tibolution only modifies confirmed unsigned bundles.";
   }
   return null;
 }
@@ -99,9 +110,10 @@ export function desktopProcessFound(platform, processList) {
         if (name === "chatgpt") return true;
         if (name !== "codex") return false;
         if (!executable) return true;
-        return executable.includes("\\programs\\codex\\")
-          || executable.includes("\\windowsapps\\")
-          || executable.endsWith("\\codex.exe") && executable.includes("\\codex desktop\\");
+        // Exclude the known npm CLI layout, not every unfamiliar Desktop path.
+        // Unknown Codex processes must block replacement rather than risk a live app.
+        return !executable.includes("\\node_modules\\@openai\\codex\\")
+          && !executable.includes("\\node_modules\\@openai\\codex-win32-");
       });
     } catch {
       // Fall through to tasklist CSV parsing on older PowerShell installations.

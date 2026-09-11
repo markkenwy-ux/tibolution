@@ -141,3 +141,8 @@ test("CSS provides cover crossfade, click-through, themes, and reduced motion", 
   assert.match(css, /electron-light/u);
   assert.match(css, /prefers-reduced-motion:\s*reduce/u);
 });
+
+test("light theme uses a reading surface without a full-screen white shade", () => {
+  assert.match(css, /html\.electron-light[^{}]*\.tibo-shade\s*\{\s*background: none;/u);
+  assert.match(css, /html\.electron-light[^{}]*\[data-thread-user-message-navigation-content\]\s*\{\s*background: rgb\(255 255 255 \/ 0\.94\)/u);
+});

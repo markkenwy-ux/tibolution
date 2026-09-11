@@ -4,9 +4,10 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub publishing guide (中文)](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.1 release notes](docs/releases/v2.1.1.md)
+[v2.1.2 release notes](docs/releases/v2.1.2.md)
 
-Current release: **2.1.1**. Linux has real-client verification. Windows and
+Release candidate: **2.1.2** (not published). The new light-theme reading surface
+still needs Desktop visual acceptance. Linux has historical real-client verification. Windows and
 macOS support is deliberately qualified in the platform table below.
 
 **Tibolution** is an unofficial, model-agnostic background patch for Codex
@@ -93,10 +94,11 @@ depends on how that platform's Codex Desktop package is signed:
 | Platform/package | Status |
 |---|---|
 | Linux package at `/usr/lib/chatgpt/resources/app.asar` | Built, installed, restored, and visually verified on a real client |
-| Windows unpackaged Electron install with a writable `resources/app.asar` | Supported by the PowerShell installer; automated path and transaction tests pass, not yet real-device verified |
+| Windows unpackaged Electron install with a writable `resources/app.asar` | Experimental: PowerShell installer and automated coverage available; real-client installation and recovery remain unverified |
 | Microsoft Store/MSIX under `WindowsApps` | Refused: replacing files would violate the signed, managed package |
-| macOS unsigned/ad-hoc app bundle | Cross-platform builder and transaction core available; not yet real-device verified |
-| macOS app bundle with a valid code signature | Refused: replacing `app.asar` would invalidate the signature |
+| macOS confirmed unsigned app bundle | Experimental: builder and transaction core available; real-client installation and recovery remain unverified |
+| macOS signed app bundle, including ad-hoc | Refused: no signature removal, bypass, or re-signing |
+| macOS damaged signature or unknown signature state | Refused; failed verification does not prove an unsigned bundle |
 
 The project will not bypass OS package signatures, take ownership of
 `WindowsApps`, or re-sign an official application. A refused signed package is
@@ -133,7 +135,7 @@ Replace `<REPOSITORY_HTTPS_URL>` with that copied URL. Review the inspector
 output, completely exit Codex Desktop, then use the platform command:
 
 ```bash
-# Linux, or an eligible unsigned/ad-hoc macOS bundle
+# Linux, or an eligible confirmed unsigned macOS bundle
 bash scripts/install.sh
 ```
 
@@ -320,7 +322,7 @@ bash scripts/uninstall-linux-launcher.sh
 
 ## Test coverage
 
-The current suite contains 47 tests. It covers:
+The current suite contains 50 tests. It covers:
 
 - all six effort-to-image mappings;
 - arbitrary unknown models sharing the same effort background;
@@ -425,6 +427,9 @@ data, tokens, conversations, or private logs. See [SECURITY.md](SECURITY.md) and
 use the repository's bug-report template.
 
 ## Known limitations
+
+- A real-client screenshot shows horizontal dark bands over the wallpaper.
+  The exact DOM source has not been confirmed; this candidate does not fix them.
 
 - Codex Desktop updates commonly replace `app.asar`; rebuild from the updated
   original rather than installing an old patched archive. On Linux, the

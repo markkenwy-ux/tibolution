@@ -4,13 +4,14 @@
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub 发布教程](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.1 发布说明](docs/releases/v2.1.1.md)
+[v2.1.2 发布说明](docs/releases/v2.1.2.md)
 
 Tibolution 是一个非官方、与模型无关的 Codex Desktop 背景补丁。它读取 Codex
 最终选中的原生 reasoning effort，在六张本地图片之间交叉淡入，不修改官方压缩
 React bundle，不添加任何档位、控件、标题或说明文字。
 
-当前版本：**2.1.1**。Linux 已在真实客户端上完成构建、安装、还原、交互和启动
+候选版本：**2.1.2**（尚未发布）。本次浅色阅读面板仍待 Desktop 实机视觉验收。
+Linux 历史版本已在真实客户端上完成构建、安装、还原、交互和启动
 自检验证；Windows 与 macOS 的支持范围必须以本文的平台表格为准。
 
 ## 它做什么
@@ -72,10 +73,11 @@ React bundle，不添加任何档位、控件、标题或说明文字。
 | 平台/安装方式 | 状态 |
 |---|---|
 | Linux `/usr/lib/chatgpt/resources/app.asar` | 已在真实客户端完成安装、还原、UI 和启动器验证 |
-| Windows 非商店 Electron 安装 | PowerShell 安装器与自动测试支持，尚无公开实机验证 |
+| Windows 非商店 Electron 安装 | 实验性支持：有 PowerShell 安装器及自动测试，真实客户端安装与恢复尚未验证 |
 | Microsoft Store/MSIX `WindowsApps` | 明确拒绝，不能破坏系统管理的签名包 |
-| macOS 未签名或 ad-hoc 应用 | 构建与事务核心可用，尚无公开实机验证 |
-| macOS 有效签名 `.app` | 明确拒绝，替换 ASAR 会使官方签名失效 |
+| macOS 确认未签名的应用 | 实验性支持：构建与事务核心可用，真实客户端安装与恢复尚未验证 |
+| macOS 已签名应用（包括 ad-hoc） | 明确拒绝，不移除、绕过或重新签名 |
+| macOS 签名损坏或状态不明 | 明确拒绝；验证失败不等于未签名 |
 
 项目不会接管 `WindowsApps` 权限、关闭系统安全机制、绕过签名或替官方应用重签名。
 
@@ -196,7 +198,7 @@ bash scripts/uninstall-linux-launcher.sh
 
 ## 测试与验证
 
-当前自动测试共 **47 项**，覆盖六档映射、未知模型一致性、主滑块和高级菜单、聊天
+当前自动测试共 **50 项**，覆盖六档映射、未知模型一致性、主滑块和高级菜单、聊天
 文字隔离、不增加 unsupported 档位、图片失败、明暗主题、reduced motion、CSP、
 官方 bundle 哈希、ASAR/unpacked 完整性、运行中拒绝、精确备份还原、Windows/macOS
 模拟事务、Linux 启动修复、授权取消、并发锁和用户 desktop entry 还原。
@@ -254,6 +256,9 @@ GitHub 仓库和 issue 中绝对不能包含：
 [SECURITY.md](SECURITY.md)。
 
 ## 已知限制
+
+- 实机截图显示背景上存在明显的水平暗色条带；具体 DOM 来源尚未定位，
+  当前候选未修复这一问题，不代表完整视觉验收通过。
 
 - Linux 自动修复只覆盖通过用户级 `chatgpt.desktop` 发起的应用菜单启动。
 - 客户端更新后由应用自身立即重启时，可能要等下一次菜单启动才会执行自检。

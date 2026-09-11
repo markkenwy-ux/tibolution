@@ -119,12 +119,17 @@ test("builder refuses an archive whose required app.asar.unpacked directory is m
   await assert.rejects(readFile(output));
 });
 
-test("installer refuses while a ChatGPT process is running", async (t) => {
+test("installer refuses running Desktop processes without changing target bytes", async (t) => {
   const root = await mkdtemp(path.join(os.tmpdir(), "tibo-running-test-"));
   t.after(() => rm(root, { recursive: true, force: true }));
   const target = path.join(root, "app.asar");
   const patched = path.join(root, "dist", "patched.asar");
   await writeFile(target, "fixture");
+  for (const [platform, processes] of [
+    ["linux", "ChatGPT /usr/lib/chatgpt/ChatGPT\n"],
+    ["win32", JSON.stringify({ ProcessName: "Codex", Path: "C:\\Program Files\\Codex\\Codex.exe" })],
+    ["win32", JSON.stringify({ ProcessName: "Codex", Path: "D:\\Apps\\Codex\\Codex.exe" })],
+  ]) {
   const result = run(process.execPath, [
     prepareInstallScript,
     "--target", target,
@@ -133,11 +138,14 @@ test("installer refuses while a ChatGPT process is running", async (t) => {
   ], { env: {
     ...process.env,
     TIBO_TEST_MODE: "1",
-    TIBO_TEST_PLATFORM: "linux",
-    TIBO_TEST_PROCESS_LIST: "ChatGPT /usr/lib/chatgpt/ChatGPT\n",
+    TIBO_TEST_ALLOW_RUNNING: "0",
+    TIBO_TEST_PLATFORM: platform,
+    TIBO_TEST_PROCESS_LIST: processes,
   } });
   assert.equal(result.status, 10);
   assert.match(result.stderr, /is running/u);
+  assert.equal(await readFile(target, "utf8"), "fixture");
+  }
 });
 
 test("test-mode installer creates an exact backup and restore returns exact bytes", async (t) => {

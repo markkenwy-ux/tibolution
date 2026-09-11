@@ -73,3 +73,27 @@ test("Desktop process detection does not confuse the command-line codex process"
     Path: "C:\\Users\\example\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\codex.exe",
   })), false);
 });
+
+test("Windows blocks running Desktop in system, custom, and unknown locations", () => {
+  for (const executable of ["C:\\Program Files\\Codex\\Codex.exe", "D:\\Apps\\Codex\\Codex.exe", "", "C:\\Users\\测试 用户\\Codex\\Codex.exe"]) {
+    assert.equal(desktopProcessFound("win32", JSON.stringify({ ProcessName: "Codex", Path: executable })), true, executable);
+  }
+});
+
+test("macOS only permits positively identified unsigned bundles", () => {
+  const target = "/Applications/Codex.app/Contents/Resources/app.asar";
+  const unsigned = { status: 1, stderr: `${target}: code object is not signed at all\n` };
+  assert.equal(protectedPlatformReason(target, "darwin", {
+    codesignResult: unsigned, codesignDisplayResult: unsigned,
+  }), null);
+  for (const [verify, display] of [
+    [{ status: 0 }, { status: 0, stderr: "Signature=adhoc" }],
+    [{ status: 1, stderr: "invalid signature" }, { status: 0, stderr: "Authority=Developer ID" }],
+    [{ status: 1, stderr: "invalid signature" }, unsigned],
+    [unsigned, { status: 1, stderr: "permission denied" }],
+    [{ status: null, error: { code: "EACCES" } }, unsigned],
+    [unsigned, { status: null, error: { code: "ENOENT" } }],
+  ]) {
+    assert.ok(protectedPlatformReason(target, "darwin", { codesignResult: verify, codesignDisplayResult: display }));
+  }
+});

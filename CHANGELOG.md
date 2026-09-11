@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.1.2 (release candidate)
+
+- Replace the light-theme full-screen white tint with a local reading surface.
+  Keep dark-theme styling, assets, and effort switching unchanged.
+  Desktop visual acceptance is pending; do not treat this as a verified release.
+
+- Block running Windows Desktop processes in Program Files, custom paths, and
+  unknown locations while excluding the known npm Codex CLI layout.
+- Allow macOS patching only after both verification and signature inspection
+  positively identify an unsigned bundle. Reject ad-hoc signatures, damaged
+  signatures, and inspection errors.
+- Correct platform support claims: Windows unpackaged and macOS unsigned
+  installations are experimental until real-client install/recovery validation.
+- Add regression cases for the previously missed process and signature states.
+- Leave the native theme preference under user control; no automatic dark-mode
+  setting is included.
+- Document visible horizontal dark bands reported in a real-client screenshot.
+  Their exact DOM source remains unconfirmed and they are not fixed in this candidate.
+
 ## 2.1.1
 
 - Scoped the Linux launcher suite to Linux runners and supplied a local
