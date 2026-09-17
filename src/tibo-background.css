@@ -92,3 +92,25 @@ html[data-tibo-background="on"] [role="listbox"] {
     transform: none;
   }
 }
+
+/* Modern Desktop uses data-theme and explicit surface markers. Only tint the
+   surfaces: opacity on their containers would also fade text and controls. */
+html[data-tibo-background="on"] {
+  --tibo-chat-surface: rgb(16 16 16 / 0.35);
+  --tibo-composer-surface: rgb(30 30 30 / 0.50);
+}
+
+html[data-theme="light"][data-tibo-background="on"],
+html.electron-light[data-tibo-background="on"] {
+  --tibo-chat-surface: rgb(255 255 255 / 0.45);
+  --tibo-composer-surface: rgb(255 255 255 / 0.62);
+}
+
+html[data-tibo-background="on"] [data-app-shell-main-surface] {
+  background-color: var(--tibo-chat-surface) !important;
+}
+
+html[data-tibo-background="on"] [data-composer-surface-variant] {
+  background-color: var(--tibo-composer-surface) !important;
+  backdrop-filter: blur(6px);
+}

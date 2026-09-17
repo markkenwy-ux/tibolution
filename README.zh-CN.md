@@ -1,18 +1,22 @@
 # Tibolution / 滑动变祖器
 
+**Windows CDP 实验后端：**参见 [启动、验证与恢复](docs/windows-cdp.md)。
+通过运行时注入适配官方 MSIX 客户端，不修改应用文件。下文的签名包拒绝规则
+继续适用于原有 ASAR 补丁路线。实机兼容性以验证报告为准。
+
 > Turn up the reasoning. Evolve the Tibo.
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub 发布教程](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.2 发布说明](docs/releases/v2.1.2.md)
+[v2.2.0-cdp.2 发布说明](docs/releases/v2.2.0-cdp.2.md)
 
 Tibolution 是一个非官方、与模型无关的 Codex Desktop 背景补丁。它读取 Codex
 最终选中的原生 reasoning effort，在六张本地图片之间交叉淡入，不修改官方压缩
 React bundle，不添加任何档位、控件、标题或说明文字。
 
-候选版本：**2.1.2**（尚未发布）。本次浅色阅读面板仍待 Desktop 实机视觉验收。
-Linux 历史版本已在真实客户端上完成构建、安装、还原、交互和启动
-自检验证；Windows 与 macOS 的支持范围必须以本文的平台表格为准。
+预览版本：**2.2.0-cdp.2**。Windows CDP 注入与深色主题透明度已在
+26.911.7940.0 客户端验证。原生档位交互、浅色主题仍待实机验收；
+具体验证范围见发布说明。原有 ASAR 后端继续保留。
 
 ## 它做什么
 
@@ -73,8 +77,8 @@ Linux 历史版本已在真实客户端上完成构建、安装、还原、交�
 | 平台/安装方式 | 状态 |
 |---|---|
 | Linux `/usr/lib/chatgpt/resources/app.asar` | 已在真实客户端完成安装、还原、UI 和启动器验证 |
-| Windows 非商店 Electron 安装 | 实验性支持：有 PowerShell 安装器及自动测试，真实客户端安装与恢复尚未验证 |
-| Microsoft Store/MSIX `WindowsApps` | 明确拒绝，不能破坏系统管理的签名包 |
+| Windows 非商店 Electron 安装 | 已移除旧 ASAR 安装入口；CDP 启动器要求官方 MSIX 客户端 |
+| Microsoft Store/MSIX `WindowsApps` | CDP 预览：已在 26.911.7940.0 验证运行时注入；仍拒绝替换 ASAR |
 | macOS 确认未签名的应用 | 实验性支持：构建与事务核心可用，真实客户端安装与恢复尚未验证 |
 | macOS 已签名应用（包括 ad-hoc） | 明确拒绝，不移除、绕过或重新签名 |
 | macOS 签名损坏或状态不明 | 明确拒绝；验证失败不等于未签名 |
@@ -91,6 +95,8 @@ Linux 历史版本已在真实客户端上完成构建、安装、还原、交�
 
 ## 下载与首次检查
 
+Windows 用户请直接按 [CDP 启动说明](docs/windows-cdp.md)操作。以下 ASAR 检查与安装步骤适用于 Linux/macOS。
+
 在仓库页面点击 **Code -> HTTPS** 复制地址，然后执行：
 
 ```bash
@@ -106,7 +112,7 @@ npm run inspect
 `npm run inspect` 必须基于当前本机安装结果判断，README 记录的旧版本信息不能代替
 实际检查。检查失败时不要安装旧 patched ASAR，也不要删除保护逻辑。
 
-## 安装
+## 安装（Linux/macOS ASAR 后端）
 
 安装补丁前必须完全退出 Codex Desktop。Linux 或符合条件的未签名 macOS 包：
 
@@ -114,20 +120,12 @@ npm run inspect
 bash scripts/install.sh
 ```
 
-Windows 非商店 Electron 安装，在 PowerShell 中运行：
-
-```powershell
-& .\scripts\install.ps1
-```
+Windows 请使用 [CDP 启动方式](docs/windows-cdp.md)，旧 ASAR 安装入口已移除。
 
 非默认安装路径可以显式传入：
 
 ```bash
 bash scripts/install.sh --target /exact/path/to/app.asar
-```
-
-```powershell
-& .\scripts\install.ps1 -Target 'C:\exact\path\resources\app.asar'
 ```
 
 安装器先在项目的 `dist/` 中构建，再核对源 ASAR 没有变化。备份名称为：

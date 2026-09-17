@@ -1,14 +1,19 @@
 # Tibolution / 滑动变祖器
 
+**Windows CDP pilot:** see [Windows runtime setup and restore](docs/windows-cdp.md).
+This backend targets the official MSIX client without modifying application
+files. Signed-package refusals below apply to the original ASAR backend.
+
 > Turn up the reasoning. Evolve the Tibo.
 
 [English](README.md) | [简体中文](README.zh-CN.md) |
 [GitHub publishing guide (中文)](docs/GITHUB-PUBLISHING.zh-CN.md) |
-[v2.1.2 release notes](docs/releases/v2.1.2.md)
+[v2.2.0-cdp.2 release notes](docs/releases/v2.2.0-cdp.2.md)
 
-Release candidate: **2.1.2** (not published). The new light-theme reading surface
-still needs Desktop visual acceptance. Linux has historical real-client verification. Windows and
-macOS support is deliberately qualified in the platform table below.
+Preview version: **2.2.0-cdp.2**. Windows CDP injection and dark-theme
+transparency have been verified on client 26.911.7940.0. Native effort
+interactions and light-theme Desktop acceptance remain unverified. See the
+release notes for the exact scope; the original ASAR backend remains available.
 
 **Tibolution** is an unofficial, model-agnostic background patch for Codex
 Desktop. It observes the final native reasoning effort and crossfades between
@@ -94,8 +99,8 @@ depends on how that platform's Codex Desktop package is signed:
 | Platform/package | Status |
 |---|---|
 | Linux package at `/usr/lib/chatgpt/resources/app.asar` | Built, installed, restored, and visually verified on a real client |
-| Windows unpackaged Electron install with a writable `resources/app.asar` | Experimental: PowerShell installer and automated coverage available; real-client installation and recovery remain unverified |
-| Microsoft Store/MSIX under `WindowsApps` | Refused: replacing files would violate the signed, managed package |
+| Windows unpackaged Electron install | Legacy ASAR installer removed; the CDP launcher requires the official MSIX client |
+| Microsoft Store/MSIX under `WindowsApps` | CDP preview: runtime injection verified on 26.911.7940.0; ASAR replacement is refused |
 | macOS confirmed unsigned app bundle | Experimental: builder and transaction core available; real-client installation and recovery remain unverified |
 | macOS signed app bundle, including ad-hoc | Refused: no signature removal, bypass, or re-signing |
 | macOS damaged signature or unknown signature state | Refused; failed verification does not prove an unsigned bundle |
@@ -119,6 +124,8 @@ data, tokens, logs, or conversations are distributed. `dist/`,
 
 ## Quick start
 
+Windows users: follow the [CDP setup](docs/windows-cdp.md). The ASAR steps below are for Linux/macOS.
+
 Clone the repository and verify it before installing anything:
 
 Copy the HTTPS URL from this repository's **Code** menu, then run:
@@ -137,11 +144,6 @@ output, completely exit Codex Desktop, then use the platform command:
 ```bash
 # Linux, or an eligible confirmed unsigned macOS bundle
 bash scripts/install.sh
-```
-
-```powershell
-# Windows PowerShell, unpackaged Electron installation only
-& .\scripts\install.ps1
 ```
 
 Linux users can then enable update-time self-repair for application-menu
@@ -197,7 +199,7 @@ The builder also refuses a source archive that already contains Tibolution.
 After an app update, always build from the newly installed official archive,
 never from an old patched copy.
 
-## Install
+## Install (Linux/macOS ASAR backend)
 
 Codex Desktop must be fully closed. The installer checks this before building
 and again immediately before replacement.
@@ -208,20 +210,12 @@ Linux or an eligible macOS bundle:
 bash scripts/install.sh
 ```
 
-Windows PowerShell:
-
-```powershell
-& .\scripts\install.ps1
-```
+Windows: use the [CDP launcher](docs/windows-cdp.md). The legacy ASAR install entry has been removed.
 
 Use an exact non-default archive when needed:
 
 ```bash
 bash scripts/install.sh --target /exact/path/to/app.asar
-```
-
-```powershell
-& .\scripts\install.ps1 -Target 'C:\exact\path\resources\app.asar'
 ```
 
 The installer builds in the user's project directory, verifies that the source

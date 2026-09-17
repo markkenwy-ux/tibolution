@@ -1,16 +1,39 @@
 (() => {
   "use strict";
 
+  window.__TIBO_BACKGROUND__?.destroy?.();
+  const config = window.__TIBO_CONFIG__ ?? {};
+  let destroyed = false;
+  let started = false;
+  let observer = null;
+  let previewEffort = null;
+  const frames = new Set();
+  const imageStates = new Map();
+  const previousAttributes = new Map(["data-tibo-background", "data-tibo-effort"].map(
+    (name) => [name, document.documentElement.getAttribute(name)],
+  ));
+  function frame(callback) {
+    let completed = false;
+    let id;
+    id = requestAnimationFrame(() => {
+      completed = true;
+      frames.delete(id);
+      if (!destroyed) callback();
+    });
+    if (!completed) frames.add(id);
+    return id;
+  }
+
   const EFFORTS = Object.freeze(["low", "medium", "high", "xhigh", "max", "ultra"]);
   const STATE_SELECTOR =
     "[data-codex-intelligence-trigger][data-selected-reasoning-effort]";
   const loaderScript = document.currentScript;
-  const assetRoot = new URL(
+  const assetRoot = () => new URL(
     loaderScript?.dataset.assetRoot ?? "./tibo-assets/",
     loaderScript?.src ?? location.href,
   );
   const imageUrls = Object.freeze(Object.fromEntries(
-    EFFORTS.map((effort) => [effort, new URL(`${effort}.png`, assetRoot).href]),
+    EFFORTS.map((effort) => [effort, config.images?.[effort] ?? new URL(`${effort}.png`, assetRoot()).href]),
   ));
 
   let currentEffort = null;
@@ -46,8 +69,8 @@
     if (!loaded.has(url)) {
       loaded.set(url, new Promise((resolve) => {
         const image = new Image();
-        image.onload = () => resolve(true);
-        image.onerror = () => resolve(false);
+        image.onload = () => { imageStates.set(url, "loaded"); resolve(true); };
+        image.onerror = () => { imageStates.set(url, "failed"); resolve(false); };
         image.src = url;
       }));
     }
@@ -57,10 +80,10 @@
   async function setBackground(effort, { immediate = false } = {}) {
     const normalized = validEffort(effort);
     const sequence = ++requestSequence;
-    if (!normalized || normalized === currentEffort) return false;
+    if (destroyed || !normalized || normalized === currentEffort) return false;
 
     const url = imageUrls[normalized];
-    if (!(await preload(url)) || sequence !== requestSequence) return false;
+    if (!(await preload(url)) || destroyed || sequence !== requestSequence) return false;
 
     const host = ensureRoot();
     const layers = host.querySelectorAll(".tibo-layer");
@@ -71,11 +94,11 @@
     next.dataset.effort = normalized;
     if (immediate) next.style.transition = "none";
 
-    requestAnimationFrame(() => {
+    frame(() => {
       next.dataset.active = "true";
       if (previous !== next) previous.dataset.active = "false";
       if (immediate) {
-        requestAnimationFrame(() => next.style.removeProperty("transition"));
+        frame(() => next.style.removeProperty("transition"));
       }
     });
     activeLayer = nextLayer;
@@ -97,16 +120,18 @@
 
   function sync() {
     scheduled = false;
+    if (previewEffort !== null) return;
     const effort = pendingEffort ?? readEffort();
     pendingEffort = null;
     if (effort) void setBackground(effort);
   }
 
   function scheduleSync(effort = null) {
+    if (destroyed) return;
     pendingEffort = validEffort(effort) ?? pendingEffort;
     if (scheduled) return;
     scheduled = true;
-    requestAnimationFrame(() => {
+    frame(() => {
       try {
         sync();
       } catch (error) {
@@ -127,23 +152,56 @@
   }
 
   function start() {
+    if (started || destroyed) return;
+    started = true;
     ensureRoot();
     scheduleSync();
-    const observer = new MutationObserver(handleMutations);
+    observer = new MutationObserver(handleMutations);
     observer.observe(document.documentElement, {
       subtree: true,
       childList: true,
       attributes: true,
       attributeFilter: ["data-selected-reasoning-effort"],
     });
-    window.__TIBO_BACKGROUND__ = Object.freeze({
+  }
+
+  function destroy() {
+    destroyed = true;
+    ++requestSequence;
+    observer?.disconnect();
+    document.removeEventListener("DOMContentLoaded", start);
+    for (const id of frames) cancelAnimationFrame(id);
+    frames.clear();
+    root?.remove();
+    for (const [name, value] of previousAttributes) {
+      if (value === null) document.documentElement.removeAttribute(name);
+      else document.documentElement.setAttribute(name, value);
+    }
+    if (window.__TIBO_BACKGROUND__ === api) delete window.__TIBO_BACKGROUND__;
+  }
+  const api = Object.freeze({
+      version: "2.2.0-cdp.2",
       efforts: EFFORTS,
       stateSelector: STATE_SELECTOR,
       get currentEffort() { return currentEffort; },
-      sync: scheduleSync,
-      setForPreview: (effort) => setBackground(effort),
+      sync: () => { previewEffort = null; pendingEffort = null; scheduleSync(); },
+      setForPreview: (effort) => {
+        const valid = validEffort(effort);
+        if (!valid) return Promise.resolve(false);
+        previewEffort = valid;
+        return setBackground(valid);
+      },
+      destroy,
+      status: () => ({
+        version: "2.2.0-cdp.2", destroyed, started, previewEffort,
+        nativeStateFound: Boolean(document.querySelector(STATE_SELECTOR)),
+        nativeEffort: readEffort(), currentEffort,
+        rootCount: document.querySelectorAll("#tibo-reasoning-background").length,
+        imageLoaded: currentEffort !== null && imageStates.get(imageUrls[currentEffort]) === "loaded",
+        failedImages: [...imageStates.values()].filter((value) => value === "failed").length,
+      }),
     });
-  }
+  window.__TIBO_BACKGROUND__ = api;
 
   try {
     if (document.readyState === "loading") {
